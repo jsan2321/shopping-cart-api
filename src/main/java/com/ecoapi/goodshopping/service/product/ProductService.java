@@ -1,5 +1,6 @@
 package com.ecoapi.goodshopping.service.product;
 
+import com.ecoapi.goodshopping.exceptions.ProductNotFoundException;
 import com.ecoapi.goodshopping.exceptions.ResourceNotFoundException;
 import com.ecoapi.goodshopping.model.Category;
 import com.ecoapi.goodshopping.model.Product;
@@ -62,7 +63,7 @@ public class ProductService implements IProductService {
         productRepository.findById(id)
                          .ifPresentOrElse(
                                  productRepository::delete,
-                                 () -> { throw new ResourceNotFoundException("Product not found!"); }
+                                 () -> { throw new ProductNotFoundException("Product not found!"); }
                          );
     }
 
@@ -71,7 +72,7 @@ public class ProductService implements IProductService {
         return productRepository.findById(productId)
                                 .map(existingProduct -> updateExistingProduct(existingProduct, request))
                                 .map(productRepository::save)
-                                .orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
+                                .orElseThrow(() -> new ProductNotFoundException("Product not found!"));
     }
 
     private Product updateExistingProduct(Product existingProduct, ProductUpdateRequest request) {

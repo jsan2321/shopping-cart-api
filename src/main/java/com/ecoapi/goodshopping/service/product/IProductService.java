@@ -1,14 +1,16 @@
 package com.ecoapi.goodshopping.service.product;
 
 import com.ecoapi.goodshopping.model.Product;
+import com.ecoapi.goodshopping.request.AddProductRequest;
+import com.ecoapi.goodshopping.request.ProductUpdateRequest;
 
 import java.util.List;
 
 public interface IProductService {
-    Product addProduct(Product product);
+    Product addProduct(AddProductRequest product);
     Product getProductById(Long id);
     void deleteProductById(Long id);
-    Product updateProduct(Product product, Long productId);
+    Product updateProduct(ProductUpdateRequest product, Long productId);
     List<Product> getAllProducts();
     List<Product> getProductsByCategory(String category);
     List<Product> getProductsByBrand(String brand);

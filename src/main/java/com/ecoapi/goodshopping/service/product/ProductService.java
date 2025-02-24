@@ -1,21 +1,53 @@
 package com.ecoapi.goodshopping.service.product;
 
 import com.ecoapi.goodshopping.exceptions.ResourceNotFoundException;
+import com.ecoapi.goodshopping.model.Category;
 import com.ecoapi.goodshopping.model.Product;
+import com.ecoapi.goodshopping.repository.CategoryRepository;
 import com.ecoapi.goodshopping.repository.ProductRepository;
+import com.ecoapi.goodshopping.request.AddProductRequest;
+import com.ecoapi.goodshopping.request.ProductUpdateRequest;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor // Generates a parameterized constructor with the final fields
 public class ProductService implements IProductService {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
+
+    // the method first: tries to find an existing Category by its name
+    // then, if the Category does not exist (returns null), it creates a new Category and saves it to the database.
     @Override
-    public Product addProduct(Product product) {
-        return null;
+    public Product addProduct(AddProductRequest request) {
+        //Category category = categoryRepository.findByName(request.getCategory().getName());
+        Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
+                                    .orElseGet(() -> {
+                                        Category newCategory = new Category(request.getCategory().getName());
+                                        return categoryRepository.save(newCategory);
+                                    });
+
+        // After ensuring the Category exists (either by finding it or creating it), sets the Category in the request object.
+        request.setCategory(category);
+        return productRepository.save(createProduct(request, category));
+    }
+
+    // helper method to construct a Product object
+    private Product createProduct(AddProductRequest request, Category category) {
+        return new Product(
+                request.getName(),
+                request.getBrand(),
+                request.getPrice(),
+                request.getInventory(),
+                request.getDescription(),
+                category
+        );
     }
 
     @Override
@@ -28,13 +60,30 @@ public class ProductService implements IProductService {
     public void deleteProductById(Long id) {
         // productRepository.findById(id).ifPresent((product) -> { productRepository.delete(product); });
         productRepository.findById(id)
-                         .ifPresentOrElse(productRepository::delete,
-                                          () -> { throw new ResourceNotFoundException("Product not found!"); });
+                         .ifPresentOrElse(
+                                 productRepository::delete,
+                                 () -> { throw new ResourceNotFoundException("Product not found!"); }
+                         );
     }
 
     @Override
-    public Product updateProduct(Product product, Long productId) {
-        return null;
+    public Product updateProduct(ProductUpdateRequest request, Long productId) {
+        return productRepository.findById(productId)
+                                .map(existingProduct -> updateExistingProduct(existingProduct, request))
+                                .map(productRepository::save)
+                                .orElseThrow(() -> new ResourceNotFoundException("Product not found!"));
+    }
+
+    private Product updateExistingProduct(Product existingProduct, ProductUpdateRequest request) {
+        existingProduct.setName(request.getName());
+        existingProduct.setBrand(request.getBrand());
+        existingProduct.setPrice(request.getPrice());
+        existingProduct.setInventory(request.getInventory());
+        existingProduct.setDescription(request.getDescription());
+
+        Category category = categoryRepository.findByName(request.getCategory().getName());
+        existingProduct.setCategory(category);
+        return existingProduct;
     }
 
     @Override

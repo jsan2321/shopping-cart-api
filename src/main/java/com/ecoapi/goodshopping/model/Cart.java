@@ -19,6 +19,11 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+/*
+    @Version // Add this field for optimistic locking
+    private Integer version;
+*/
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -37,13 +42,17 @@ public class Cart {
     }
 
     private void updateTotalAmount() {
-        this.totalAmount = items.stream().map(item -> {
+   /*     this.totalAmount = items.stream().map(item -> {
             BigDecimal unitPrice = item.getUnitPrice();
             if (unitPrice == null) {
                 return BigDecimal.ZERO;
             }
             return unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
+    */
+        this.totalAmount = items.stream()
+                                .map(CartItem::getTotalPrice)
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
 

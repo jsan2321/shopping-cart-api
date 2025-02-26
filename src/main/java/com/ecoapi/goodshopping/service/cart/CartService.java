@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -55,12 +56,22 @@ public class CartService implements ICartService {
     }
 
     @Override
-    //@Transactional
+    @Transactional
     public Long initializeNewCart() {
-        Cart newCart = new Cart();
+        //Cart newCart = new Cart();
         //Long newCartId = cartIdGenerator.incrementAndGet();
         //newCart.setId(newCartId);
-        return cartRepository.save(newCart).getId();
-    }
+        //return cartRepository.save(newCart).getId();
+        // Check if there's an existing empty or inactive cart
+        Optional<Cart> existingCart = cartRepository.findByItemsIsEmpty();
 
+        if (existingCart.isPresent()) {
+            // Reuse the existing cart
+            return existingCart.get().getId();
+        } else {
+            // Create a new cart
+            Cart newCart = new Cart();
+            return cartRepository.save(newCart).getId();
+        }
+    }
 }

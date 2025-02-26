@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE) // Lock the entity
     Optional<Cart> findById(Long id);
-
+    // Find a cart with no items
+    Optional<Cart> findByItemsIsEmpty();
 }

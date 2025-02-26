@@ -1,15 +1,19 @@
 package com.ecoapi.goodshopping.service.product;
 
+import com.ecoapi.goodshopping.dto.ImageDto;
+import com.ecoapi.goodshopping.dto.ProductDto;
 import com.ecoapi.goodshopping.exceptions.ProductNotFoundException;
-import com.ecoapi.goodshopping.exceptions.ResourceNotFoundException;
 import com.ecoapi.goodshopping.model.Category;
+import com.ecoapi.goodshopping.model.Image;
 import com.ecoapi.goodshopping.model.Product;
 import com.ecoapi.goodshopping.repository.CategoryRepository;
+import com.ecoapi.goodshopping.repository.ImageRepository;
 import com.ecoapi.goodshopping.repository.ProductRepository;
 import com.ecoapi.goodshopping.request.AddProductRequest;
 import com.ecoapi.goodshopping.request.ProductUpdateRequest;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +25,8 @@ public class ProductService implements IProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-
+    private final ModelMapper modelMapper;
+    private final ImageRepository imageRepository;
 
     // the method first: tries to find an existing Category by its name
     // then, if the Category does not exist (returns null), it creates a new Category and saves it to the database.
@@ -120,5 +125,21 @@ public class ProductService implements IProductService {
     @Override
     public Long countProductsByBrandAndName(String brand, String name) {
         return productRepository.countByBrandAndName(brand, name);
+    }
+
+    @Override
+    public List<ProductDto> getConvertedProducts(List<Product> products) {
+        return products.stream().map(this::convertToDto).toList();
+    }
+
+    @Override
+    public ProductDto convertToDto(Product product) {
+        ProductDto productDto = modelMapper.map(product, ProductDto.class);
+        List<Image> images = imageRepository.findByProductId(product.getId());
+        List<ImageDto> imageDtos = images.stream()
+                                         .map(image -> modelMapper.map(image, ImageDto.class))
+                                         .toList();
+        productDto.setImages(imageDtos);
+        return productDto;
     }
 }

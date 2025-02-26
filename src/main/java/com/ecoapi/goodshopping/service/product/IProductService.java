@@ -1,5 +1,6 @@
 package com.ecoapi.goodshopping.service.product;
 
+import com.ecoapi.goodshopping.dto.ProductDto;
 import com.ecoapi.goodshopping.model.Product;
 import com.ecoapi.goodshopping.request.AddProductRequest;
 import com.ecoapi.goodshopping.request.ProductUpdateRequest;
@@ -18,4 +19,8 @@ public interface IProductService {
     List<Product> getProductsByName(String name);
     List<Product> getProductsByBrandAndName(String brand, String name);
     Long countProductsByBrandAndName(String brand, String name);
+
+    List<ProductDto> getConvertedProducts(List<Product> products);
+
+    ProductDto convertToDto(Product product);
 }

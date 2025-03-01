@@ -2,6 +2,7 @@ package com.ecoapi.goodshopping.service.product;
 
 import com.ecoapi.goodshopping.dto.ImageDto;
 import com.ecoapi.goodshopping.dto.ProductDto;
+import com.ecoapi.goodshopping.exceptions.AlreadyExistsException;
 import com.ecoapi.goodshopping.exceptions.ProductNotFoundException;
 import com.ecoapi.goodshopping.model.Category;
 import com.ecoapi.goodshopping.model.Image;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // Generates a parameterized constructor with the final fields
@@ -33,6 +33,11 @@ public class ProductService implements IProductService {
     // then, if the Category does not exist (returns null), it creates a new Category and saves it to the database.
     @Override
     public Product addProduct(AddProductRequest request) {
+
+        if (productExists(request.getName(), request.getBrand())){ // exception thrown with a message set into it
+            throw new AlreadyExistsException(request.getBrand() +" "+request.getName()+ " already exists, you may update this product instead!");
+        }
+
         //Category category = categoryRepository.findByName(request.getCategory().getName());
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                                     .orElseGet(() -> {
@@ -43,6 +48,10 @@ public class ProductService implements IProductService {
         // After ensuring the Category exists (either by finding it or creating it), sets the Category in the request object.
         //request.setCategory(category);
         return productRepository.save(createProduct(request, category));
+    }
+
+    private boolean productExists(String name , String brand) {
+        return productRepository.existsByNameAndBrand(name, brand);
     }
 
     // helper method to construct a Product object

@@ -1,6 +1,7 @@
 package com.ecoapi.goodshopping.controller;
 
 import com.ecoapi.goodshopping.dto.ProductDto;
+import com.ecoapi.goodshopping.exceptions.AlreadyExistsException;
 import com.ecoapi.goodshopping.exceptions.ResourceNotFoundException;
 import com.ecoapi.goodshopping.model.Product;
 import com.ecoapi.goodshopping.request.AddProductRequest;
@@ -49,8 +50,8 @@ public class ProductController {
             return ResponseEntity.status(CREATED)
                                  .body(new ApiResponse("Add product success!", productDto));
                                  //.ok(new ApiResponse("Add product success!", theProduct));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(new ApiResponse(e.getMessage(), null));
+        } catch (AlreadyExistsException e) { // when this exception is caught, the message is passed to the ApiResponse
+            return ResponseEntity.status(CONFLICT).body(new ApiResponse(e.getMessage(), null));
         }
     }
 

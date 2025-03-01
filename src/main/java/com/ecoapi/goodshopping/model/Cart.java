@@ -27,6 +27,9 @@ public class Cart {
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     // cascading is enabled. This allows operations (e.g., persist, merge, remove) performed on this entity to be propagated to related entities.
+    // When orphanRemoval is true, JPA considers that if a child entity is no longer referenced by the parent entity, then it should be removed from the database.
+    // Indicates that if a child item is removed from the relationship on the owner side, it will also be automatically removed from the database.
+    // If a cartItem is unlinked from the father collection, then that cartItem will be removed from the database automatically.
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartItem> items = new HashSet<>();
 

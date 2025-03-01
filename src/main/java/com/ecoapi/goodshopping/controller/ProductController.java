@@ -8,6 +8,7 @@ import com.ecoapi.goodshopping.request.ProductUpdateRequest;
 import com.ecoapi.goodshopping.response.ApiResponse;
 import com.ecoapi.goodshopping.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

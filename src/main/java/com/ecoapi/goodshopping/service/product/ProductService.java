@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor // Generates a parameterized constructor with the final fields
@@ -40,7 +41,7 @@ public class ProductService implements IProductService {
                                     });
 
         // After ensuring the Category exists (either by finding it or creating it), sets the Category in the request object.
-        request.setCategory(category);
+        //request.setCategory(category);
         return productRepository.save(createProduct(request, category));
     }
 
@@ -122,24 +123,39 @@ public class ProductService implements IProductService {
         return productRepository.findByBrandAndName(brand, name);
     }
 
+    /*
     @Override
     public Long countProductsByBrandAndName(String brand, String name) {
         return productRepository.countByBrandAndName(brand, name);
     }
+    */
 
     @Override
     public List<ProductDto> getConvertedProducts(List<Product> products) {
-        return products.stream().map(this::convertToDto).toList();
+        return products.stream()
+                       // method reference which is a shorthand way to refer to the method 'convertToDto' that belongs to the current instance of the class (this).
+                       // it means "for each element in the stream, apply the convertToDto method of the current object."
+                       .map(this::convertToDto)
+                       // The lambda equivalent would explicitly define the (lambda) function that map should apply to each element of the stream... it contains the parameter passed to the lambda function, the body of the lambda function, whose method is passed an argument.
+                       //.map(product -> this.convertToDto(product))
+                       .toList(); // converts the transformed object into a List
+                       //.collect(Collectors.toList());
     }
 
     @Override
     public ProductDto convertToDto(Product product) {
+        // Map the Product entity to a ProductDto object... ModelMapper automatically copies fields with matching names from Product to ProductDto
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
+        // Fetch a list of images entities associated with the current product
+        // The method searches for all Image entities where the productId matches the provided id
         List<Image> images = imageRepository.findByProductId(product.getId());
+        // Convert the list of Image entities to a list of ImageDto objects and set them in the ProductDto
+        // Each Image is mapped to an ImageDto
         List<ImageDto> imageDtos = images.stream()
                                          .map(image -> modelMapper.map(image, ImageDto.class))
                                          .toList();
         productDto.setImages(imageDtos);
+        // Return the fully populated ProductDto
         return productDto;
     }
 }

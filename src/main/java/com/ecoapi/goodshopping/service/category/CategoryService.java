@@ -35,10 +35,10 @@ public class CategoryService implements ICategoryService {
     @Override
     public Category addCategory(Category category) {
         // if category were null, Optional.of would throw a NullPointerException
-        return  Optional.of(category)
+        return  Optional.of(category) // Wrap the category in an Optional
                         .filter(c -> !categoryRepository.existsByName(c.getName())) // checks if a Category with the given name does not already exist in the database
-                        .map(categoryRepository::save)
-                        .orElseThrow(() -> new AlreadyExistsException(category.getName()+" already exists")); // if the filter condition fails (i.e., the Category already exists), the orElseThrow method is executed
+                        .map(categoryRepository::save) // Save the category if the name is unique... the filter condition passed (True), so the Optional retains the category object
+                        .orElseThrow(() -> new AlreadyExistsException(category.getName()+" already exists")); // if the filter condition fails (False), the Optional becomes and the orElseThrow method is executed
     }
 
     @Override
@@ -47,7 +47,8 @@ public class CategoryService implements ICategoryService {
                        .map(oldCategory -> {
                            oldCategory.setName(category.getName());
                            return categoryRepository.save(oldCategory);
-                       }).orElseThrow(()-> new ResourceNotFoundException("Category not found!"));
+                       })
+                       .orElseThrow(()-> new ResourceNotFoundException("Category not found!"));
     }
 
     @Override

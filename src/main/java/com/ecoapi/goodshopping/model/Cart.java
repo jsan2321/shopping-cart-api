@@ -26,21 +26,28 @@ public class Cart {
 */
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
+    // cascading is enabled. This allows operations (e.g., persist, merge, remove) performed on this entity to be propagated to related entities.
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartItem> items = new HashSet<>();
 
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+
     public void addItem(CartItem item) {
         this.items.add(item);
-        item.setCart(this);
+        item.setCart(this); // ensures that the bidirectional relationship between Cart and CartItem is maintained
         updateTotalAmount();
     }
 
     public void removeItem(CartItem item) {
         this.items.remove(item);
-        item.setCart(null);
+        item.setCart(null); // breaks the bidirectional relationship between the Cart and CartItem.
         updateTotalAmount();
     }
 
+    // Recalculates the total amount of the cart based on the items in the cart.
     private void updateTotalAmount() {
    /*     this.totalAmount = items.stream().map(item -> {
             BigDecimal unitPrice = item.getUnitPrice();
@@ -52,6 +59,10 @@ public class Cart {
     */
         this.totalAmount = items.stream()
                                 .map(CartItem::getTotalPrice)
+                                // Reduces the stream of totalPrice values to a single BigDecimal by summing them up. For each element in the stream, it applies the add method to combine the current result with the next element.
+                                // The process starts with BigDecimal.ZERO as the initial value, it serves as the starting point for the summation.
+                                // BigDecimal::add is used to accumulate the sum, it combines two values and returns the result
+                                // If the stream is empty, the result of the reduction will be BigDecimal.ZERO.
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -26,5 +26,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // It counts the number of entities where the brand property matches the provided brand parameter and the name property matches the provided name parameter
     // If no entities match the criteria, the method will return 0
     // Similar Query: SELECT COUNT(*) FROM Product p WHERE p.brand = 'Nike' AND p.name = 'Running Shoes';
-    Long countByBrandAndName(String brand, String name);
+    //Long countByBrandAndName(String brand, String name);
 }

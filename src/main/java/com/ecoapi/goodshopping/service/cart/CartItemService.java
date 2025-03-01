@@ -22,6 +22,7 @@ public class CartItemService implements ICartItemService {
     private final IProductService productService;
     private final ICartService cartService;
 
+    // adds an item to a shopping cart and ensures that the data is saved to the database using cascading behavior and ownership of the relationship between the Cart and CartItem entities.
     @Override
     @Transactional
     public void addItemToCart(Long cartId, Long productId, int quantity) {
@@ -32,16 +33,18 @@ public class CartItemService implements ICartItemService {
                                 .filter(item -> item.getProduct().getId().equals(productId))
                                 .findFirst()
                                 .orElse(new CartItem());
-        if (cartItem.getId() == null) {
+        if (cartItem.getId() == null) { // If the CartItem is new, it is initialized with...
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(quantity);
             cartItem.setUnitPrice(product.getPrice());
-        } else {
+        } else { // If the CartItem already exists, its quantity is updated.
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         }
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
+        // any changes to the Cart entity (including adding or updating CartItem entities) are propagated to the database.
+        // Automatic Dirty Checking: JPA automatically tracks changes to managed entities (entities fetched from the database). When cartRepository.save(cart) is called, JPA detects that the Cart entity has been modified (e.g., a new CartItem was added) and persists those changes to the database.
         //cartItemRepository.save(cartItem);
         cartRepository.save(cart);
     }
@@ -60,7 +63,8 @@ public class CartItemService implements ICartItemService {
         return  cart.getItems()
                     .stream()
                     .filter(item -> item.getProduct().getId().equals(productId))
-                    .findFirst().orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
     }
 
     @Override

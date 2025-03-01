@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class CartService implements ICartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    private final AtomicLong cartIdGenerator = new AtomicLong(0);
+    //private final AtomicLong cartIdGenerator = new AtomicLong(0);
 
     @Override
     @Transactional
@@ -43,7 +42,7 @@ public class CartService implements ICartService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public BigDecimal getTotalPrice(Long id) {
         Cart cart = getCart(id);
         return cart.getTotalAmount();
@@ -55,23 +54,35 @@ public class CartService implements ICartService {
 */
     }
 
+    // This method is designed to initialize a new shopping cart for a user.
+    // It follows a reuse-first approach, where it first checks if there is an empty or inactive cart that can be reused.
+    // If no empty cart exists, it creates a new one.
     @Override
-    @Transactional
+    @Transactional // Ensures that the method runs within a transactional context. If any part of the method fails, the entire transaction is rolled back.
     public Long initializeNewCart() {
         //Cart newCart = new Cart();
         //Long newCartId = cartIdGenerator.incrementAndGet();
         //newCart.setId(newCartId);
         //return cartRepository.save(newCart).getId();
-        // Check if there's an existing empty or inactive cart
+        // Check if there's an existing cart with no items (an empty cart)
         Optional<Cart> existingCart = cartRepository.findByItemsIsEmpty();
 
-        if (existingCart.isPresent()) {
+        if (existingCart.isPresent()) { // An Empty Cart Exists
             // Reuse the existing cart
-            return existingCart.get().getId();
-        } else {
+            //Cart cart = existingCart.get();
+            // return cart.getId();
+            return existingCart.get().getId(); // If an empty cart exists, retrieves its ID and returns it.
+        } else { // No Empty Cart Exists (empty Optional)
             // Create a new cart
             Cart newCart = new Cart();
-            return cartRepository.save(newCart).getId();
+            //Cart savedCart = cartRepository.save(newCart);
+            //return savedCart.getId();
+            return cartRepository.save(newCart).getId(); // Retrieves the ID of the newly saved cart and returns it.
         }
+    }
+
+    @Override
+    public Cart getCartByUserId(Long userId) {
+        return cartRepository.findByUserId(userId);
     }
 }

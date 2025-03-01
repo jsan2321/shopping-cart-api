@@ -36,10 +36,16 @@ public class ImageController {
         }
     }
 
+    // Resource is a Spring abstraction for a file or data that can be streamed to the client.
     @GetMapping("/image/download/{imageId}")
     public ResponseEntity<Resource> downloadImage(@PathVariable Long imageId) throws SQLException {
         Image image = imageService.getImageById(imageId);
-        ByteArrayResource resource = new ByteArrayResource(image.getImage().getBytes(1, (int) image.getImage().length()));
+
+        // Wraps the byte[] into a Resource object that can be streamed to the client.
+        ByteArrayResource resource = new ByteArrayResource(image.getImage() // Retrieves the binary data of the image (stored as a Blob in the database).
+                                                                // Extracts the binary data from the Blob as a byte[]... from starting position (first byte) to the total length of the Blob.
+                                                                .getBytes(1, (int) image.getImage().length()));
+
         return  ResponseEntity.ok()
                               .contentType(MediaType.parseMediaType(image.getFileType()))
                               .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +image.getFileName() + "\"")

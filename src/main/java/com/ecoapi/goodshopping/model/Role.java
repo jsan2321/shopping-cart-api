@@ -22,6 +22,6 @@ public class Role {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "roles")
+    @ManyToMany(mappedBy = "roles") // inverse side of the relationship
     private Collection<User> users = new HashSet<>();
 }

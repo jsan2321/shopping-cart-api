@@ -29,8 +29,6 @@ public class ProductService implements IProductService {
     private final ModelMapper modelMapper;
     private final ImageRepository imageRepository;
 
-    // the method first: tries to find an existing Category by its name
-    // then, if the Category does not exist (returns null), it creates a new Category and saves it to the database.
     @Override
     public Product addProduct(AddProductRequest request) {
 
@@ -38,15 +36,12 @@ public class ProductService implements IProductService {
             throw new AlreadyExistsException(request.getBrand() +" "+request.getName()+ " already exists, you may update this product instead!");
         }
 
-        //Category category = categoryRepository.findByName(request.getCategory().getName());
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                                     .orElseGet(() -> {
                                         Category newCategory = new Category(request.getCategory().getName());
                                         return categoryRepository.save(newCategory);
                                     });
 
-        // After ensuring the Category exists (either by finding it or creating it), sets the Category in the request object.
-        //request.setCategory(category);
         return productRepository.save(createProduct(request, category));
     }
 
@@ -74,7 +69,6 @@ public class ProductService implements IProductService {
 
     @Override
     public void deleteProductById(Long id) {
-        // productRepository.findById(id).ifPresent((product) -> { productRepository.delete(product); });
         productRepository.findById(id)
                          .ifPresentOrElse(
                                  productRepository::delete,
@@ -132,39 +126,22 @@ public class ProductService implements IProductService {
         return productRepository.findByBrandAndName(brand, name);
     }
 
-    /*
-    @Override
-    public Long countProductsByBrandAndName(String brand, String name) {
-        return productRepository.countByBrandAndName(brand, name);
-    }
-    */
-
     @Override
     public List<ProductDto> getConvertedProducts(List<Product> products) {
         return products.stream()
-                       // method reference which is a shorthand way to refer to the method 'convertToDto' that belongs to the current instance of the class (this).
-                       // it means "for each element in the stream, apply the convertToDto method of the current object."
                        .map(this::convertToDto)
-                       // The lambda equivalent would explicitly define the (lambda) function that map should apply to each element of the stream... it contains the parameter passed to the lambda function, the body of the lambda function, whose method is passed an argument.
-                       //.map(product -> this.convertToDto(product))
                        .toList(); // converts the transformed object into a List
                        //.collect(Collectors.toList());
     }
 
     @Override
     public ProductDto convertToDto(Product product) {
-        // Map the Product entity to a ProductDto object... ModelMapper automatically copies fields with matching names from Product to ProductDto
         ProductDto productDto = modelMapper.map(product, ProductDto.class);
-        // Fetch a list of images entities associated with the current product
-        // The method searches for all Image entities where the productId matches the provided id
         List<Image> images = imageRepository.findByProductId(product.getId());
-        // Convert the list of Image entities to a list of ImageDto objects and set them in the ProductDto
-        // Each Image is mapped to an ImageDto
         List<ImageDto> imageDtos = images.stream()
                                          .map(image -> modelMapper.map(image, ImageDto.class))
                                          .toList();
         productDto.setImages(imageDtos);
-        // Return the fully populated ProductDto
         return productDto;
     }
 }

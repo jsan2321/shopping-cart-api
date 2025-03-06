@@ -22,20 +22,29 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
-    @NaturalId
+    @NaturalId // unique business key
     private String email;
     private String password;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) // A user can have one cart, and a cart belongs to one user
     private Cart cart;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true) // A user can have multiple orders, and each order belongs to one user
     private List<Order> orders;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade =
-                                                 {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
-    @JoinTable(name = "user_roles",  joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+    @ManyToMany(
+            fetch = FetchType.EAGER,
+            cascade = {
+                    CascadeType.DETACH,
+                    CascadeType.MERGE,
+                    CascadeType.PERSIST,
+                    CascadeType.REFRESH
+            }
+    ) // A user can have multiple roles, and a role can be assigned to multiple users
+    @JoinTable(
+            name = "user_roles", // name of the join table
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
-    )
+    ) // User entity owns the relationship
     private Collection<Role> roles = new HashSet<>();
 }

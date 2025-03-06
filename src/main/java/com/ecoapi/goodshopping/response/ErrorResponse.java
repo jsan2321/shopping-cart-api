@@ -1,11 +1,9 @@
 package com.ecoapi.goodshopping.response;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 
 @AllArgsConstructor
-@Data
-public class ApiResponse {
+public class ErrorResponse {
     private String message;
-    private Object data;
+    private String path;
 }

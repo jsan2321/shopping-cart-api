@@ -20,13 +20,6 @@ public class CategoryController {
 
     private final ICategoryService categoryService;
 
-/*
-    // constructor injection needed due to a problem with lombok annotation processor with intellij
-    // solved by switching back to the default version: "obtain processors from project classpath"
-    public CategoryController(ICategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
-*/
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse> getAllCategories() {
@@ -35,7 +28,6 @@ public class CategoryController {
             return  ResponseEntity.ok(new ApiResponse("Found!", categories));
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                                 //.body(new ApiResponse("Error: " + e.getMessage(), null, INTERNAL_SERVER_ERROR));
                                  .body(new ApiResponse("Error: " + e.getMessage(), INTERNAL_SERVER_ERROR));
         }
     }

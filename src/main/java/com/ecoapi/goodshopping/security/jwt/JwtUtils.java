@@ -9,58 +9,69 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
 @Component
-public class JwtUtils {
+public class JwtUtils { // A utility class for JWT operations (e.g., validating tokens, extracting usernames)
 
-    @Value("${auth.token.jwtSecret}")
+    @Value("${auth.token.jwtSecret}") // Injects values from the application configuration
     private String jwtSecret;
 
     @Value("${auth.token.expirationInMils}")
     private int expirationTime;
 
     public String generateTokenForUser(Authentication authentication) {
+
         ShopUserDetails userPrincipal = (ShopUserDetails) authentication.getPrincipal();
 
         List<String> roles = userPrincipal.getAuthorities()
                                           .stream()
-                                          .map(GrantedAuthority::getAuthority).toList();
+                                          .map(GrantedAuthority::getAuthority)
+                                          .toList();
 
+        // Build JWT Token
         return Jwts.builder()
-                   .setSubject(userPrincipal.getEmail())
+                   .subject(userPrincipal.getEmail())
                    .claim("id", userPrincipal.getId())
                    .claim("roles", roles)
-                   .setIssuedAt(new Date())
-                   .setExpiration(new Date((new Date()).getTime() +expirationTime))
-                   .signWith(key(), SignatureAlgorithm.HS256).compact();
-
+                   .issuedAt(new Date())
+                   .expiration(new Date((new Date()).getTime() + expirationTime))
+                   .signWith(key())
+                   .compact();
     }
+
+    // generates a signing key from the base64-encoded jwtSecret
     private Key key() {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 
+    // extracts the username (subject) from a parsed JWT token
     public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
-                   .setSigningKey(key())
+        return Jwts.parser()
+                   //.setSigningKey(key())
+                   .verifyWith( (SecretKey) key())
                    .build()
-                   .parseClaimsJws(token)
-                   .getBody().getSubject();
+                   //.parseClaimsJws(token)
+                   .parseSignedClaims(token)
+                   //.getBody()
+                   .getPayload()
+                   .getSubject();
     }
 
     public  boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                .setSigningKey(key())
+            Jwts.parser()
+                //.setSigningKey(key())
+                .verifyWith( (SecretKey) key())
                 .build()
-                .parseClaimsJws(token);
+                //.parseClaimsJws(token); // parse the token
+                .parseSignedClaims(token);
             return true;
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
-                 IllegalArgumentException e) {
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
             throw new JwtException(e.getMessage());
-
         }
     }
 }

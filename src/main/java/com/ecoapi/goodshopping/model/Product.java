@@ -13,7 +13,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-//@AllArgsConstructor
 @Entity
 public class Product {
 
@@ -26,7 +25,6 @@ public class Product {
     private int inventory;
     private String description;
 
-    //@JsonBackReference  // Prevent this part from being reserialized. This means that Category es la parte principal de la relación, y cuando serialice Product, no intente volver a serializar Category.
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private Category category;

@@ -61,10 +61,6 @@ public class ImageService implements IImageService {
                 String downloadUrl = buildDownloadUrl+savedImage.getId(); // attaches image's ID
                 savedImage.setDownloadUrl(downloadUrl);
                 imageRepository.save(savedImage); // no need for a second save if the entity is managed by the persistence context
-                /*Image savedImage = imageRepository.save(image);
-
-                savedImage.setDownloadUrl(buildDownloadUrl+savedImage.getId()); // updates the download URL with the actual id of the saved image
-                imageRepository.save(savedImage);*/
 
                 // DTO that stores the details of the saved image
                 ImageDto imageDto = new ImageDto();

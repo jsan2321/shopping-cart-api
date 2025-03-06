@@ -42,8 +42,7 @@ public class ImageController {
         Image image = imageService.getImageById(imageId);
 
         // Wraps the byte[] into a Resource object that can be streamed to the client.
-        ByteArrayResource resource = new ByteArrayResource(image.getImage() // Retrieves the binary data of the image (stored as a Blob in the database).
-                                                                // Extracts the binary data from the Blob as a byte[]... from starting position (first byte) to the total length of the Blob.
+        ByteArrayResource resource = new ByteArrayResource(image.getImage()
                                                                 .getBytes(1, (int) image.getImage().length()));
 
         return  ResponseEntity.ok()

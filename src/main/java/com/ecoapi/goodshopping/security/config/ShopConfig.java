@@ -23,39 +23,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import java.util.List;
 
 @RequiredArgsConstructor
-@EnableWebSecurity
+@EnableWebSecurity // Enables Spring Security's web security support and provides the Spring MVC integration
 @Configuration
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true) // Enables method-level security using annotations like @PreAuthorize and @PostAuthorize
 public class ShopConfig {
     private final ShopUserDetailsService userDetailsService;
     private final JwtAuthEntryPoint authEntryPoint;
 
-    private static final List<String> SECURED_URLS =
-            List.of("/api/v1/carts/**", "/api/v1/cartItems/**");
-
+    // List of URL patterns that require authentication
+    private static final List<String> SECURED_URLS = List.of("/api/v1/carts/**", "/api/v1/cartItems/**");
 
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
 
-    @Bean
+    @Bean // Bean for encoding passwords securely
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    @Bean // A custom AuthTokenFilter bean for processing JWT tokens in incoming requests
     public AuthTokenFilter authTokenFilter() {
         return new AuthTokenFilter();
     }
 
-    @Bean
+    @Bean // Retrieves the AuthenticationManager from the AuthenticationConfiguration to handle authentication
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return  authConfig.getAuthenticationManager();
-
+        return authConfig.getAuthenticationManager();
     }
 
-    @Bean
+    @Bean // Configures a DaoAuthenticationProvider to use the custom userDetailsService and passwordEncoder for authentication
     public DaoAuthenticationProvider daoAuthenticationProvider() {
         var authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
@@ -63,18 +61,16 @@ public class ShopConfig {
         return authProvider;
     }
 
-    @Bean
+    @Bean // Configures the security filter chain for HTTP requests. It defines how authentication, authorization, and other security-related features work
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        http.csrf(AbstractHttpConfigurer::disable)
-            .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth ->auth.requestMatchers(SECURED_URLS.toArray(String[]::new)).authenticated()
-                                              .anyRequest().permitAll());
-        http.authenticationProvider(daoAuthenticationProvider());
-        http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-
+        http.csrf(AbstractHttpConfigurer::disable) // Disables CSRF protection (common in stateless APIs using JWT)
+            .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint)) // Sets the custom JwtAuthEntryPoint to handle authentication errors
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Configures the application to be stateless (no sessions)
+            .authorizeHttpRequests(auth -> auth.requestMatchers(SECURED_URLS.toArray(String[]::new)) // converts the List<String> into a String[] (array of strings)
+                                               .authenticated() // Only authenticated users (users who have logged in and provided valid credentials) can access these URLs
+                                               .anyRequest().permitAll()); // all other requests (not matching the secured URLs) are allowed without authentication
+        http.authenticationProvider(daoAuthenticationProvider()); // Registers the provider... Spring Security will still use the default DaoAuthenticationProvider because it detects the UserDetailsService and PasswordEncoder beans
+        http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class); // Adds the custom Filter before the default Filter to process JWT tokens
+        return http.build(); // Finalizes and returns the configured SecurityFilterChain
     }
-
 }

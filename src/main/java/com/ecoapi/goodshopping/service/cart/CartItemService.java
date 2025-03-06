@@ -43,9 +43,6 @@ public class CartItemService implements ICartItemService {
         }
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
-        // any changes to the Cart entity (including adding or updating CartItem entities) are propagated to the database.
-        // Automatic Dirty Checking: JPA automatically tracks changes to managed entities (entities fetched from the database). When cartRepository.save(cart) is called, JPA detects that the Cart entity has been modified (e.g., a new CartItem was added) and persists those changes to the database.
-        //cartItemRepository.save(cartItem);
         cartRepository.save(cart);
     }
 

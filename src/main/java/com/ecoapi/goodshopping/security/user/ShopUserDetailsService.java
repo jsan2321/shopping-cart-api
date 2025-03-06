@@ -12,10 +12,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class ShopUserDetailsService implements UserDetailsService {
+public class ShopUserDetailsService implements UserDetailsService { // A custom implementation of UserDetailsService to load user-specific data (e.g., from a database) during authentication
     private final UserRepository userRepository;
+
+    // loads user details by their username (in this case, email)
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        System.out.println("HELLO ----- Email: " + email);
         User user = Optional.ofNullable(userRepository.findByEmail(email))
                             .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
         return ShopUserDetails.buildUserDetails(user);

@@ -20,15 +20,8 @@ public class Cart {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-/*
-    @Version // Add this field for optimistic locking
-    private Integer version;
-*/
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-    // cascading is enabled. This allows operations (e.g., persist, merge, remove) performed on this entity to be propagated to related entities.
-    // When orphanRemoval is true, JPA considers that if a child entity is no longer referenced by the parent entity, then it should be removed from the database.
-    // Indicates that if a child item is removed from the relationship on the owner side, it will also be automatically removed from the database.
     // If a cartItem is unlinked from the father collection, then that cartItem will be removed from the database automatically.
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartItem> items = new HashSet<>();
@@ -52,20 +45,8 @@ public class Cart {
 
     // Recalculates the total amount of the cart based on the items in the cart.
     private void updateTotalAmount() {
-   /*     this.totalAmount = items.stream().map(item -> {
-            BigDecimal unitPrice = item.getUnitPrice();
-            if (unitPrice == null) {
-                return BigDecimal.ZERO;
-            }
-            return unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
-    */
         this.totalAmount = items.stream()
                                 .map(CartItem::getTotalPrice)
-                                // Reduces the stream of totalPrice values to a single BigDecimal by summing them up. For each element in the stream, it applies the add method to combine the current result with the next element.
-                                // The process starts with BigDecimal.ZERO as the initial value, it serves as the starting point for the summation.
-                                // BigDecimal::add is used to accumulate the sum, it combines two values and returns the result
-                                // If the stream is empty, the result of the reduction will be BigDecimal.ZERO.
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
